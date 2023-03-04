@@ -22,7 +22,9 @@ def main():
 
     update_log = False
     mc_url_pre = "https://www.minecraft.net"
-    web_hook_pfp = "https://uovh.net/mc-rss-images/favicon-96x96.webp"
+    images_url = os.environ['images_url']
+    web_hook_pfp = f"{images_url}/pfp.webp"
+
     for item in rss:
         publish_epoch = time_convert(item['pubDate'])
         if publish_epoch > newest_epoch:
@@ -42,11 +44,9 @@ def main():
                 username=item['primaryTag'],
                 avatar_url=web_hook_pfp
             )
-            print(web_hook_pfp)
             embed = DiscordEmbed(title=item['title'], description=item['description'])
             embed.set_url(item['link'])
-            embed.set_image(f"https://uovh.net/mc-rss-images/{image_file_name}")
-            print(f"https://uovh.net/mc-rss-images/{image_file_name}")
+            embed.set_image(f"{images_url}/{image_file_name}")
             embed.set_footer(text=item['pubDate'])
             webhook.add_embed(embed)
             webhook.execute()
@@ -101,21 +101,21 @@ def download_image(url, file_name):
         "Chrome/107.0.0.0 Safari/537.36"
     }
     proxies = {
-        'http': 'http://bamajoe411.com:3128',
+        "http": "http://bamajoe411.com:3128",
     }
     res = get(
         url,
         stream=True,
         headers=headers,
         proxies=proxies,
-        auth=(os.environ['proxy_user'],os.environ['proxy_pass'])
+        auth=(os.environ['proxy_user'], os.environ['proxy_pass'])
     )
     if res.status_code == 200:
-        with open(f"images/{file_name}", 'wb') as f:
+        with open(f"images/{file_name}", "wb") as f:
             shutil.copyfileobj(res.raw, f)
-        print('Image sucessfully Downloaded: ', file_name)
+        print("Image successfully Downloaded: ", file_name)
     else:
-        print('Image Couldn\'t be retrieved')
+        print("Image Couldn't be retrieved")
 
 
 if __name__ == "__main__":
