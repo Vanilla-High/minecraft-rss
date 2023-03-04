@@ -4,9 +4,11 @@ from requests import get
 import time
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import shutil
+from dotenv import load_dotenv
 
 
 def main():
+    load_dotenv()
     rss = mc_rss_to_list()
     with open("last-edited.txt") as log:
         previous_epoch = float(log.read())
@@ -43,8 +45,8 @@ def main():
             print(web_hook_pfp)
             embed = DiscordEmbed(title=item['title'], description=item['description'])
             embed.set_url(item['link'])
-            embed.set_image(f"{mc_url_pre}/{item['imageURL']}")
-            print(f"{mc_url_pre}/{item['imageURL']}")
+            embed.set_image(f"https://uovh.net/mc-rss-images/{image_file_name}")
+            print(f"https://uovh.net/mc-rss-images/{image_file_name}")
             embed.set_footer(text=item['pubDate'])
             webhook.add_embed(embed)
             webhook.execute()
@@ -73,20 +75,24 @@ def mc_rss_to_list():
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/107.0.0.0 Safari/537.36"
     }
-    req = get(url=rss_url, headers=headers)
+    proxies = {
+        'http': 'http://bamajoe411.com:3128',
+    }
+    req = get(url=rss_url, headers=headers, proxies=proxies, auth=(os.environ['proxy_user'], os.environ['proxy_pass']))
     root = ET.fromstring(req.content)
     rss_list = []
     for item in root.iter('item'):
         rss_item = {
-            item[0].tag : item[0].text,
-            item[1].tag : item[1].text,
-            item[2].tag : item[2].text,
-            item[3].tag : item[3].text,
-            item[4].tag : item[4].text,
-            item[5].tag : item[5].text,
+            item[0].tag: item[0].text,
+            item[1].tag: item[1].text,
+            item[2].tag: item[2].text,
+            item[3].tag: item[3].text,
+            item[4].tag: item[4].text,
+            item[5].tag: item[5].text,
         }
         rss_list.append(rss_item)
     return rss_list
+
 
 def download_image(url, file_name):
     headers = {
@@ -94,13 +100,23 @@ def download_image(url, file_name):
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/107.0.0.0 Safari/537.36"
     }
-    res = get(url, stream = True, headers=headers)
+    proxies = {
+        'http': 'http://bamajoe411.com:3128',
+    }
+    res = get(
+        url,
+        stream=True,
+        headers=headers,
+        proxies=proxies,
+        auth=(os.environ['proxy_user'],os.environ['proxy_pass'])
+    )
     if res.status_code == 200:
-        with open(images/file_name,'wb') as f:
+        with open(f"images/{file_name}", 'wb') as f:
             shutil.copyfileobj(res.raw, f)
-        print('Image sucessfully Downloaded: ',file_name)
+        print('Image sucessfully Downloaded: ', file_name)
     else:
         print('Image Couldn\'t be retrieved')
+
 
 if __name__ == "__main__":
     main()
